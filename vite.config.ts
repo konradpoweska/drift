@@ -1,7 +1,42 @@
-import { defineConfig } from 'vite'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { VitePWA } from 'vite-plugin-pwa';
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [svelte()],
-})
+  plugins: [
+    svelte(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: {
+        name: 'Drift',
+        short_name: 'Drift',
+        description: 'A focus timer with variable-ratio reinforcement',
+        theme_color: '#111111',
+        background_color: '#111111',
+        display: 'standalone',
+        start_url: '/',
+        icons: [
+          {
+            src: 'icons/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: 'icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+      },
+    }),
+  ],
+});
