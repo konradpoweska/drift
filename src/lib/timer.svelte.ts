@@ -5,6 +5,13 @@ export interface PhaseRange {
   maxMs: number;
 }
 
+export interface PhaseEndRecord {
+  type: 'focus' | 'break';
+  startedAt: number;
+  durationMs: number;
+  completed: boolean;
+}
+
 const TICK_INTERVAL_MS = 250;
 
 export class Timer {
@@ -22,15 +29,18 @@ export class Timer {
 
   private getFocusRange: () => PhaseRange;
   private getBreakRange: () => PhaseRange;
+  private onPhaseEnd: (record: PhaseEndRecord) => void;
   private intervalId: ReturnType<typeof setInterval> | undefined;
   private onVisibilityChange = (): void => this.recompute();
 
   constructor(
     getFocusRange: () => PhaseRange,
     getBreakRange: () => PhaseRange,
+    onPhaseEnd: (record: PhaseEndRecord) => void,
   ) {
     this.getFocusRange = getFocusRange;
     this.getBreakRange = getBreakRange;
+    this.onPhaseEnd = onPhaseEnd;
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
@@ -42,7 +52,10 @@ export class Timer {
   }
 
   stop(): void {
+    if (this.phase === 'idle') return;
     this.stopTicking();
+    this.now = Date.now();
+    this.reportPhaseEnd(false);
     this.phase = 'idle';
     this.phaseStartedAt = null;
     this.phaseDurationMs = 0;
@@ -81,6 +94,7 @@ export class Timer {
     if (this.phase === 'idle' || this.phaseStartedAt === null) return;
     if (this.now - this.phaseStartedAt < this.phaseDurationMs) return;
 
+    this.reportPhaseEnd(true);
     if (this.phase === 'focus') {
       this.beginPhase('break');
     } else {
@@ -89,6 +103,16 @@ export class Timer {
       this.phaseStartedAt = null;
       this.phaseDurationMs = 0;
     }
+  }
+
+  private reportPhaseEnd(completed: boolean): void {
+    if (this.phase === 'idle' || this.phaseStartedAt === null) return;
+    this.onPhaseEnd({
+      type: this.phase,
+      startedAt: this.phaseStartedAt,
+      durationMs: this.now - this.phaseStartedAt,
+      completed,
+    });
   }
 }
 
