@@ -29,7 +29,7 @@ test('runs a full focus -> break -> idle cycle and records both events', async (
 }) => {
   await suppressNotificationPrompt(page);
   await seedSettings(page, SHORT_RANGES);
-  await page.goto('/');
+  await page.goto('./');
 
   await expect(page.getByText('Ready')).toBeVisible();
   await expect(screen(page).locator('.action')).toHaveText('Start focus');
@@ -60,7 +60,7 @@ test('stopping mid-focus records an incomplete event with the actual elapsed tim
 }) => {
   await suppressNotificationPrompt(page);
   await seedSettings(page, LONG_RANGES);
-  await page.goto('/');
+  await page.goto('./');
 
   await screen(page).locator('.action').click();
   await expect(screen(page).locator('.label')).toHaveText('Focus');
@@ -86,7 +86,7 @@ test('produces no console errors during a full cycle', async ({ page }) => {
 
   await suppressNotificationPrompt(page);
   await seedSettings(page, SHORT_RANGES);
-  await page.goto('/');
+  await page.goto('./');
   await screen(page).locator('.action').click();
   await expect(screen(page).locator('.label')).toHaveText('Ready', {
     timeout: 8000,

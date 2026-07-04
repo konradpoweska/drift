@@ -7,7 +7,8 @@ export default defineConfig({
   fullyParallel: true,
   reporter: 'list',
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    // Matches the `base` in vite.config.ts — the dev server serves under it.
+    baseURL: `http://localhost:${PORT}/drift/`,
     channel: 'chrome',
     trace: 'retain-on-failure',
   },

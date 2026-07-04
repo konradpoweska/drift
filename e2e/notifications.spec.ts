@@ -59,7 +59,7 @@ test('first start shows the permission prompt once; "Not now" starts the session
   page,
 }) => {
   await seedSettings(page, SHORT_RANGES);
-  await page.goto('/');
+  await page.goto('./');
 
   await screen(page).locator('.action').click();
   await expect(page.getByText('Get notified between phases')).toBeVisible();
@@ -79,7 +79,7 @@ test('first start shows the permission prompt once; "Not now" starts the session
 
 test('the prompt stays dismissed across a reload', async ({ page }) => {
   await seedSettings(page, SHORT_RANGES);
-  await page.goto('/');
+  await page.goto('./');
 
   await screen(page).locator('.action').click();
   await page.getByRole('button', { name: 'Not now' }).click();
@@ -97,7 +97,7 @@ test('with permission granted, a notification fires on each phase transition', a
   await context.grantPermissions(['notifications']);
   await spyOnNotifications(page);
   await seedSettings(page, SHORT_RANGES);
-  await page.goto('/');
+  await page.goto('./');
 
   // Permission is already granted, so no prompt: straight into focus.
   await screen(page).locator('.action').click();
@@ -126,7 +126,7 @@ test('stopping manually fires no notification', async ({ page, context }) => {
     breakMinMs: 30_000,
     breakMaxMs: 40_000,
   });
-  await page.goto('/');
+  await page.goto('./');
 
   await screen(page).locator('.action').click();
   await expect(screen(page).locator('.label')).toHaveText('Focus');

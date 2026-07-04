@@ -6,7 +6,7 @@ test('the gear icon toggles between the main screen and settings, and back', asy
   const errors: string[] = [];
   page.on('pageerror', (err) => errors.push(String(err)));
 
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.getByText('Ready')).toBeVisible();
 
   await page.locator('.toggle').click();

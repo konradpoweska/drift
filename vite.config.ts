@@ -2,7 +2,11 @@ import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Served from a subpath on GitHub Pages (konradpoweska.github.io/drift/).
+const BASE = '/drift/';
+
 export default defineConfig({
+  base: BASE,
   plugins: [
     svelte(),
     VitePWA({
@@ -14,7 +18,8 @@ export default defineConfig({
         theme_color: '#111111',
         background_color: '#111111',
         display: 'standalone',
-        start_url: '/',
+        start_url: BASE,
+        scope: BASE,
         icons: [
           {
             src: 'icons/icon-192.png',

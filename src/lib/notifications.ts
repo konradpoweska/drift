@@ -57,7 +57,7 @@ async function showNotification(title: string, body: string): Promise<void> {
   const options: NotificationOptions = {
     body,
     tag: NOTIFICATION_TAG,
-    icon: '/icons/icon-192.png',
+    icon: `${import.meta.env.BASE_URL}icons/icon-192.png`,
   };
 
   // Service Worker notifications fire even when the tab isn't focused;
