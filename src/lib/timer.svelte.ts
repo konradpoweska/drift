@@ -20,14 +20,17 @@ export class Timer {
   );
   remainingMs = $derived(Math.max(0, this.phaseDurationMs - this.elapsedMs));
 
-  private focusRange: PhaseRange;
-  private breakRange: PhaseRange;
+  private getFocusRange: () => PhaseRange;
+  private getBreakRange: () => PhaseRange;
   private intervalId: ReturnType<typeof setInterval> | undefined;
   private onVisibilityChange = (): void => this.recompute();
 
-  constructor(focusRange: PhaseRange, breakRange: PhaseRange) {
-    this.focusRange = focusRange;
-    this.breakRange = breakRange;
+  constructor(
+    getFocusRange: () => PhaseRange,
+    getBreakRange: () => PhaseRange,
+  ) {
+    this.getFocusRange = getFocusRange;
+    this.getBreakRange = getBreakRange;
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
@@ -53,7 +56,8 @@ export class Timer {
   }
 
   private beginPhase(phase: 'focus' | 'break'): void {
-    const range = phase === 'focus' ? this.focusRange : this.breakRange;
+    const range =
+      phase === 'focus' ? this.getFocusRange() : this.getBreakRange();
     this.phase = phase;
     this.phaseStartedAt = Date.now();
     this.phaseDurationMs = randomDurationMs(range);
