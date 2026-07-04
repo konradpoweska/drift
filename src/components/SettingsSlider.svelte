@@ -45,6 +45,7 @@
   .labelRow {
     display: flex;
     justify-content: space-between;
+    gap: 1rem;
     font-size: 0.875rem;
   }
 

@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { fly } from 'svelte/transition';
   import MainScreen from './components/MainScreen.svelte';
   import Settings from './components/Settings.svelte';
+  import { slideIn, slideOut } from './lib/transitions';
 
   type View = 'main' | 'settings';
   let view = $state<View>('main');
@@ -11,11 +13,15 @@
 </script>
 
 <main>
-  {#if view === 'main'}
-    <MainScreen />
-  {:else}
-    <Settings />
-  {/if}
+  {#key view}
+    <div class="view" in:fly={slideIn} out:fly={slideOut}>
+      {#if view === 'main'}
+        <MainScreen />
+      {:else}
+        <Settings />
+      {/if}
+    </div>
+  {/key}
 
   <button
     class="toggle"
@@ -59,11 +65,19 @@
 <style>
   main {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     min-height: 100dvh;
     color: var(--color-text);
+  }
+
+  /* Outgoing and incoming views share the same grid cell so the
+     switch animates in place without any layout shift. */
+  .view {
+    grid-area: 1 / 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
   }
 
   .toggle {

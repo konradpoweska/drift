@@ -77,7 +77,7 @@
     gap: 1.5rem;
     width: 100%;
     max-width: 24rem;
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
   }
 
   .heading {

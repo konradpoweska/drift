@@ -1,5 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { seedSettings, readPersistedData } from './fixtures';
+
+// The active screen; during a phase transition the outgoing copy is [inert].
+function screen(page: Page) {
+  return page.locator('.screen:not([inert])');
+}
 
 const SHORT_RANGES = {
   focusMinMs: 1500,
@@ -22,19 +27,19 @@ test('runs a full focus -> break -> idle cycle and records both events', async (
   await page.goto('/');
 
   await expect(page.getByText('Ready')).toBeVisible();
-  await expect(page.locator('.action')).toHaveText('Start focus');
+  await expect(screen(page).locator('.action')).toHaveText('Start focus');
 
-  await page.locator('.action').click();
-  await expect(page.locator('.label:not([inert])')).toHaveText('Focus');
-  await expect(page.locator('.clock')).toBeVisible();
+  await screen(page).locator('.action').click();
+  await expect(screen(page).locator('.label')).toHaveText('Focus');
+  await expect(screen(page).locator('.clock')).toBeVisible();
 
-  await expect(page.locator('.label:not([inert])')).toHaveText('Break', {
+  await expect(screen(page).locator('.label')).toHaveText('Break', {
     timeout: 5000,
   });
-  await expect(page.locator('.label:not([inert])')).toHaveText('Ready', {
+  await expect(screen(page).locator('.label')).toHaveText('Ready', {
     timeout: 5000,
   });
-  await expect(page.locator('.action')).toHaveText('Start next session');
+  await expect(screen(page).locator('.action')).toHaveText('Start next session');
 
   const data = await readPersistedData(page);
   const events = Object.values(data.events);
@@ -49,11 +54,11 @@ test('stopping mid-focus records an incomplete event with the actual elapsed tim
   await seedSettings(page, LONG_RANGES);
   await page.goto('/');
 
-  await page.locator('.action').click();
-  await expect(page.locator('.label:not([inert])')).toHaveText('Focus');
+  await screen(page).locator('.action').click();
+  await expect(screen(page).locator('.label')).toHaveText('Focus');
   await page.waitForTimeout(700);
-  await page.locator('.action').click();
-  await expect(page.locator('.label:not([inert])')).toHaveText('Ready');
+  await screen(page).locator('.action').click();
+  await expect(screen(page).locator('.label')).toHaveText('Ready');
 
   const data = await readPersistedData(page);
   const events = Object.values(data.events);
@@ -73,8 +78,8 @@ test('produces no console errors during a full cycle', async ({ page }) => {
 
   await seedSettings(page, SHORT_RANGES);
   await page.goto('/');
-  await page.locator('.action').click();
-  await expect(page.locator('.label:not([inert])')).toHaveText('Ready', {
+  await screen(page).locator('.action').click();
+  await expect(screen(page).locator('.label')).toHaveText('Ready', {
     timeout: 8000,
   });
 

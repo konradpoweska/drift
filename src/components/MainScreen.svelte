@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { fade } from 'svelte/transition';
+  import { fly } from 'svelte/transition';
   import { Tween } from 'svelte/motion';
   import { Timer } from '../lib/timer.svelte';
   import { persisted } from '../lib/persisted.svelte';
+  import { slideIn, slideOut } from '../lib/transitions';
 
-  const LABEL_TRANSITION_MS = 200;
   const COUNTDOWN_TWEEN_MS = 200;
 
   const timer = new Timer(
@@ -48,6 +48,13 @@
     hasHistory ? 'Start next session' : 'Start focus',
   );
   const buttonLabel = $derived(timer.phase === 'idle' ? startLabel : 'Stop');
+  const clockText = $derived(
+    timer.phase === 'focus'
+      ? formatClock(timer.elapsedMs)
+      : timer.phase === 'break'
+        ? formatClock(remainingTween.current)
+        : null,
+  );
 
   function handleClick(): void {
     if (timer.phase === 'idle') {
@@ -65,23 +72,33 @@
   }
 </script>
 
-<div class="screen">
+<div class="stack">
   {#key timer.phase}
-    <p class="label" transition:fade={{ duration: LABEL_TRANSITION_MS }}>
-      {phaseLabel}
-    </p>
+    <div class="screen" in:fly={slideIn} out:fly={slideOut}>
+      <p class="label">{phaseLabel}</p>
+
+      {#if clockText !== null}
+        <p class="clock">{clockText}</p>
+      {/if}
+
+      <button class="action" onclick={handleClick}>{buttonLabel}</button>
+    </div>
   {/key}
-
-  {#if timer.phase === 'focus'}
-    <p class="clock">{formatClock(timer.elapsedMs)}</p>
-  {:else if timer.phase === 'break'}
-    <p class="clock">{formatClock(remainingTween.current)}</p>
-  {/if}
-
-  <button class="action" onclick={handleClick}>{buttonLabel}</button>
 </div>
 
 <style>
+  /* Outgoing and incoming screens share the same grid cell, so the
+     whole view slides as one unit with no layout shift. */
+  .stack {
+    display: grid;
+    justify-items: center;
+    align-items: center;
+  }
+
+  .stack > .screen {
+    grid-area: 1 / 1;
+  }
+
   .screen {
     display: flex;
     flex-direction: column;
