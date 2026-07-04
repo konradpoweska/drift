@@ -15,7 +15,10 @@
   --color-surface: rgba(255, 255, 255, 0.06);
   --color-border: rgba(255, 255, 255, 0.1);
 
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;

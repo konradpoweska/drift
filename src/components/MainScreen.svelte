@@ -4,6 +4,11 @@
   import { Timer } from '../lib/timer.svelte';
   import { persisted } from '../lib/persisted.svelte';
   import { slideIn, slideOut } from '../lib/transitions';
+  import {
+    notifyPhaseEnd,
+    shouldPromptForPermission,
+  } from '../lib/notifications';
+  import NotificationPrompt from './NotificationPrompt.svelte';
 
   const COUNTDOWN_TWEEN_MS = 200;
 
@@ -25,8 +30,13 @@
         durationMs: record.durationMs,
         completed: record.completed,
       });
+      if (record.completed) {
+        void notifyPhaseEnd(record.type);
+      }
     },
   );
+
+  let permissionPromptVisible = $state(false);
 
   $effect(() => {
     return () => timer.destroy();
@@ -57,11 +67,20 @@
   );
 
   function handleClick(): void {
-    if (timer.phase === 'idle') {
-      timer.start();
-    } else {
+    if (timer.phase !== 'idle') {
       timer.stop();
+      return;
     }
+    if (shouldPromptForPermission()) {
+      permissionPromptVisible = true;
+      return;
+    }
+    timer.start();
+  }
+
+  function handlePromptDone(): void {
+    permissionPromptVisible = false;
+    timer.start();
   }
 
   function formatClock(ms: number): string {
@@ -73,15 +92,19 @@
 </script>
 
 <div class="stack">
-  {#key timer.phase}
+  {#key permissionPromptVisible ? 'prompt' : timer.phase}
     <div class="screen" in:fly={slideIn} out:fly={slideOut}>
-      <p class="label">{phaseLabel}</p>
+      {#if permissionPromptVisible}
+        <NotificationPrompt onDone={handlePromptDone} />
+      {:else}
+        <p class="label">{phaseLabel}</p>
 
-      {#if clockText !== null}
-        <p class="clock">{clockText}</p>
+        {#if clockText !== null}
+          <p class="clock">{clockText}</p>
+        {/if}
+
+        <button class="action" onclick={handleClick}>{buttonLabel}</button>
       {/if}
-
-      <button class="action" onclick={handleClick}>{buttonLabel}</button>
     </div>
   {/key}
 </div>

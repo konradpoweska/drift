@@ -25,6 +25,14 @@ interface StoredData {
 
 const STORAGE_KEY = 'drift';
 const TEST_DEVICE_ID = 'test-device';
+const NOTIFICATION_PROMPT_KEY = 'drift:notification-prompt-shown';
+
+/** Pretend the one-time notification prompt was already shown. */
+export async function suppressNotificationPrompt(page: Page): Promise<void> {
+  await page.addInitScript((key) => {
+    localStorage.setItem(key, 'true');
+  }, NOTIFICATION_PROMPT_KEY);
+}
 
 export async function seedSettings(
   page: Page,

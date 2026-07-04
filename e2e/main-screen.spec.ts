@@ -1,5 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
-import { seedSettings, readPersistedData } from './fixtures';
+import {
+  seedSettings,
+  readPersistedData,
+  suppressNotificationPrompt,
+} from './fixtures';
 
 // The active screen; during a phase transition the outgoing copy is [inert].
 function screen(page: Page) {
@@ -23,6 +27,7 @@ const LONG_RANGES = {
 test('runs a full focus -> break -> idle cycle and records both events', async ({
   page,
 }) => {
+  await suppressNotificationPrompt(page);
   await seedSettings(page, SHORT_RANGES);
   await page.goto('/');
 
@@ -39,7 +44,9 @@ test('runs a full focus -> break -> idle cycle and records both events', async (
   await expect(screen(page).locator('.label')).toHaveText('Ready', {
     timeout: 5000,
   });
-  await expect(screen(page).locator('.action')).toHaveText('Start next session');
+  await expect(screen(page).locator('.action')).toHaveText(
+    'Start next session',
+  );
 
   const data = await readPersistedData(page);
   const events = Object.values(data.events);
@@ -51,6 +58,7 @@ test('runs a full focus -> break -> idle cycle and records both events', async (
 test('stopping mid-focus records an incomplete event with the actual elapsed time', async ({
   page,
 }) => {
+  await suppressNotificationPrompt(page);
   await seedSettings(page, LONG_RANGES);
   await page.goto('/');
 
@@ -76,6 +84,7 @@ test('produces no console errors during a full cycle', async ({ page }) => {
     if (msg.type() === 'error') errors.push(msg.text());
   });
 
+  await suppressNotificationPrompt(page);
   await seedSettings(page, SHORT_RANGES);
   await page.goto('/');
   await screen(page).locator('.action').click();
