@@ -37,6 +37,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
       },
+      devOptions: {
+        enabled: true, // serve manifest + dev SW so `npm run dev` is installable
+      },
     }),
   ],
 });
