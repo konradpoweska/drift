@@ -15,8 +15,6 @@ export default defineConfig({
         name: 'Drift',
         short_name: 'Drift',
         description: 'A focus timer with variable-ratio reinforcement',
-        theme_color: '#111111',
-        background_color: '#111111',
         display: 'standalone',
         start_url: BASE,
         scope: BASE,
