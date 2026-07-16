@@ -1,43 +1,12 @@
 <script lang="ts">
   import { fly } from 'svelte/transition';
-  import { Timer } from '../lib/timer.svelte';
+  import { timer } from '../lib/timer.svelte';
   import { persisted } from '../lib/persisted.svelte';
   import { slideIn, slideOut } from '../lib/transitions';
-  import {
-    notifyPhaseEnd,
-    shouldPromptForPermission,
-  } from '../lib/notifications';
+  import { shouldPromptForPermission } from '../lib/notifications';
   import NotificationPrompt from './NotificationPrompt.svelte';
 
-  const timer = new Timer(
-    () => ({
-      minMs: persisted.settings.focusMinMs,
-      maxMs: persisted.settings.focusMaxMs,
-    }),
-    () => ({
-      minMs: persisted.settings.breakMinMs,
-      maxMs: persisted.settings.breakMaxMs,
-    }),
-    (record) => {
-      persisted.addEvent({
-        id: crypto.randomUUID(),
-        deviceId: persisted.deviceId,
-        type: record.type,
-        startedAt: record.startedAt,
-        durationMs: record.durationMs,
-        completed: record.completed,
-      });
-      if (record.completed) {
-        void notifyPhaseEnd(record.type);
-      }
-    },
-  );
-
   let permissionPromptVisible = $state(false);
-
-  $effect(() => {
-    return () => timer.destroy();
-  });
 
   const hasHistory = $derived(Object.keys(persisted.events).length > 0);
   const phaseLabel = $derived(

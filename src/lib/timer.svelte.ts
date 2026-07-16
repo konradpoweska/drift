@@ -1,3 +1,6 @@
+import { persisted } from './persisted.svelte';
+import { notifyPhaseEnd } from './notifications';
+
 export type Phase = 'idle' | 'focus' | 'break';
 
 export interface PhaseRange {
@@ -31,7 +34,6 @@ export class Timer {
   private getBreakRange: () => PhaseRange;
   private onPhaseEnd: (record: PhaseEndRecord) => void;
   private intervalId: ReturnType<typeof setInterval> | undefined;
-  private onVisibilityChange = (): void => this.recompute();
 
   constructor(
     getFocusRange: () => PhaseRange,
@@ -42,7 +44,7 @@ export class Timer {
     this.getBreakRange = getBreakRange;
     this.onPhaseEnd = onPhaseEnd;
     if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', this.onVisibilityChange);
+      document.addEventListener('visibilitychange', () => this.recompute());
     }
   }
 
@@ -59,13 +61,6 @@ export class Timer {
     this.phase = 'idle';
     this.phaseStartedAt = null;
     this.phaseDurationMs = 0;
-  }
-
-  destroy(): void {
-    this.stopTicking();
-    if (typeof document !== 'undefined') {
-      document.removeEventListener('visibilitychange', this.onVisibilityChange);
-    }
   }
 
   private beginPhase(phase: 'focus' | 'break'): void {
@@ -119,3 +114,30 @@ export class Timer {
 function randomDurationMs(range: PhaseRange): number {
   return range.minMs + Math.random() * (range.maxMs - range.minMs);
 }
+
+// A module-level singleton, not owned by any component: switching views
+// (e.g. opening Settings) unmounts whatever reads from `timer`, but the
+// timer itself keeps ticking and keeps firing notifications regardless.
+export const timer = new Timer(
+  () => ({
+    minMs: persisted.settings.focusMinMs,
+    maxMs: persisted.settings.focusMaxMs,
+  }),
+  () => ({
+    minMs: persisted.settings.breakMinMs,
+    maxMs: persisted.settings.breakMaxMs,
+  }),
+  (record) => {
+    persisted.addEvent({
+      id: crypto.randomUUID(),
+      deviceId: persisted.deviceId,
+      type: record.type,
+      startedAt: record.startedAt,
+      durationMs: record.durationMs,
+      completed: record.completed,
+    });
+    if (record.completed) {
+      void notifyPhaseEnd(record.type);
+    }
+  },
+);
