@@ -12,7 +12,7 @@ export interface PhaseEndRecord {
   completed: boolean;
 }
 
-const TICK_INTERVAL_MS = 250;
+const TICK_INTERVAL_MS = 1000;
 
 export class Timer {
   phase = $state<Phase>('idle');

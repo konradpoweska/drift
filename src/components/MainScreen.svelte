@@ -1,6 +1,5 @@
 <script lang="ts">
   import { fly } from 'svelte/transition';
-  import { Tween } from 'svelte/motion';
   import { Timer } from '../lib/timer.svelte';
   import { persisted } from '../lib/persisted.svelte';
   import { slideIn, slideOut } from '../lib/transitions';
@@ -9,8 +8,6 @@
     shouldPromptForPermission,
   } from '../lib/notifications';
   import NotificationPrompt from './NotificationPrompt.svelte';
-
-  const COUNTDOWN_TWEEN_MS = 200;
 
   const timer = new Timer(
     () => ({
@@ -42,10 +39,6 @@
     return () => timer.destroy();
   });
 
-  const remainingTween = Tween.of(() => timer.remainingMs, {
-    duration: COUNTDOWN_TWEEN_MS,
-  });
-
   const hasHistory = $derived(Object.keys(persisted.events).length > 0);
   const phaseLabel = $derived(
     timer.phase === 'focus'
@@ -62,7 +55,7 @@
     timer.phase === 'focus'
       ? formatClock(timer.elapsedMs)
       : timer.phase === 'break'
-        ? formatClock(remainingTween.current)
+        ? formatClock(timer.remainingMs)
         : null,
   );
 

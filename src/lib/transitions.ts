@@ -1,6 +1,6 @@
 export const SLIDE_TRANSITION_MS = 450;
 
-const SLIDE_DISTANCE_PX = 16;
+export const SLIDE_DISTANCE_PX = 16;
 
 export const slideOut = {
   y: -SLIDE_DISTANCE_PX,

@@ -2,33 +2,42 @@
   import { fly } from 'svelte/transition';
   import MainScreen from './components/MainScreen.svelte';
   import Settings from './components/Settings.svelte';
-  import { slideIn, slideOut } from './lib/transitions';
+  import {
+    SLIDE_DISTANCE_PX,
+    SLIDE_TRANSITION_MS,
+    slideIn,
+    slideOut,
+  } from './lib/transitions';
 
-  type View = 'main' | 'settings';
-  let view = $state<View>('main');
+  let settingsOpen = $state(false);
 
-  function toggleView(): void {
-    view = view === 'main' ? 'settings' : 'main';
+  function toggleSettings(): void {
+    settingsOpen = !settingsOpen;
   }
 </script>
 
-<main>
-  {#key view}
+<main
+  style:--slide-duration="{SLIDE_TRANSITION_MS}ms"
+  style:--slide-distance="{SLIDE_DISTANCE_PX}px"
+>
+  <!-- Always mounted (even while hidden behind Settings) so its Timer
+       instance keeps running instead of being destroyed and recreated. -->
+  <div class="view" class:hidden={settingsOpen} inert={settingsOpen}>
+    <MainScreen />
+  </div>
+
+  {#if settingsOpen}
     <div class="view" in:fly={slideIn} out:fly={slideOut}>
-      {#if view === 'main'}
-        <MainScreen />
-      {:else}
-        <Settings />
-      {/if}
+      <Settings />
     </div>
-  {/key}
+  {/if}
 
   <button
     class="toggle"
-    onclick={toggleView}
-    aria-label={view === 'main' ? 'Open settings' : 'Back to timer'}
+    onclick={toggleSettings}
+    aria-label={settingsOpen ? 'Close settings' : 'Open settings'}
   >
-    {#if view === 'main'}
+    {#if !settingsOpen}
       <svg
         viewBox="0 0 24 24"
         width="20"
@@ -78,12 +87,27 @@
     width: 100%;
     display: flex;
     justify-content: center;
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      opacity var(--slide-duration) ease,
+      transform var(--slide-duration) ease;
+  }
+
+  /* `inert` (set alongside this class) already removes the hidden view
+     from interaction, focus, and the accessibility tree — opacity alone
+     covers the visual, so there's no `visibility` delay to keep in sync
+     across both transition directions. */
+  .view.hidden {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--slide-distance)));
   }
 
   .toggle {
     position: absolute;
     top: 1rem;
     right: 1rem;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: center;
