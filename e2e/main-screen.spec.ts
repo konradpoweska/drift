@@ -65,7 +65,7 @@ test('stopping mid-focus records an incomplete event with the actual elapsed tim
   await screen(page).locator('.action').click();
   await expect(screen(page).locator('.label')).toHaveText('Focus');
   await page.waitForTimeout(700);
-  await screen(page).locator('.action').click();
+  await screen(page).locator('.secondary').click();
   await expect(screen(page).locator('.label')).toHaveText('Ready');
 
   const data = await readPersistedData(page);
@@ -75,6 +75,70 @@ test('stopping mid-focus records an incomplete event with the actual elapsed tim
   expect(events[0].completed).toBe(false);
   expect(events[0].durationMs).toBeGreaterThan(500);
   expect(events[0].durationMs).toBeLessThan(LONG_RANGES.focusMinMs);
+});
+
+test('pausing freezes the clock and resuming continues without a jump', async ({
+  page,
+}) => {
+  await suppressNotificationPrompt(page);
+  await seedSettings(page, LONG_RANGES);
+  await page.goto('./');
+
+  await screen(page).locator('.action').click();
+  await expect(screen(page).locator('.label')).toHaveText('Focus');
+
+  await page.waitForTimeout(1200);
+  await screen(page).locator('.action').click(); // Pause
+  await expect(screen(page).locator('.label')).toHaveText('Focus · Paused');
+  await expect(screen(page).locator('.action')).toHaveText('Resume');
+
+  const frozenClock = await screen(page).locator('.clock').textContent();
+  await page.waitForTimeout(1500);
+  await expect(screen(page).locator('.clock')).toHaveText(frozenClock ?? '');
+
+  await screen(page).locator('.action').click(); // Resume
+  await expect(screen(page).locator('.label')).toHaveText('Focus');
+  await expect(screen(page).locator('.action')).toHaveText('Pause');
+
+  await page.waitForTimeout(1200);
+  await expect(screen(page).locator('.clock')).not.toHaveText(
+    frozenClock ?? '',
+  );
+
+  await screen(page).locator('.secondary').click(); // Stop
+  await expect(screen(page).locator('.label')).toHaveText('Ready');
+
+  const data = await readPersistedData(page);
+  const events = Object.values(data.events);
+  expect(events).toHaveLength(1);
+  expect(events[0].type).toBe('focus');
+  expect(events[0].completed).toBe(false);
+});
+
+test('pause works during the break phase too', async ({ page }) => {
+  await suppressNotificationPrompt(page);
+  await seedSettings(page, {
+    focusMinMs: 1000,
+    focusMaxMs: 1200,
+    breakMinMs: 30_000,
+    breakMaxMs: 40_000,
+  });
+  await page.goto('./');
+
+  await screen(page).locator('.action').click();
+  await expect(screen(page).locator('.label')).toHaveText('Break', {
+    timeout: 5000,
+  });
+
+  await screen(page).locator('.action').click(); // Pause
+  await expect(screen(page).locator('.label')).toHaveText('Break · Paused');
+
+  const frozenClock = await screen(page).locator('.clock').textContent();
+  await page.waitForTimeout(1500);
+  await expect(screen(page).locator('.clock')).toHaveText(frozenClock ?? '');
+
+  await screen(page).locator('.action').click(); // Resume
+  await expect(screen(page).locator('.label')).toHaveText('Break');
 });
 
 test('produces no console errors during a full cycle', async ({ page }) => {

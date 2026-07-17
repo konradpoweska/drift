@@ -131,7 +131,7 @@ test('stopping manually fires no notification', async ({ page, context }) => {
   await screen(page).locator('.action').click();
   await expect(screen(page).locator('.label')).toHaveText('Focus');
   await page.waitForTimeout(500);
-  await screen(page).locator('.action').click();
+  await screen(page).locator('.secondary').click();
   await expect(screen(page).locator('.label')).toHaveText('Ready');
   await page.waitForTimeout(500);
 

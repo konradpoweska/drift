@@ -21,6 +21,8 @@ export class Timer {
   phase = $state<Phase>('idle');
   phaseStartedAt = $state<number | null>(null);
   phaseDurationMs = $state(0);
+  paused = $state(false);
+  private pausedAt: number | null = null;
   private now = $state(Date.now());
 
   elapsedMs = $derived(
@@ -55,12 +57,33 @@ export class Timer {
 
   stop(): void {
     if (this.phase === 'idle') return;
+    this.paused = false;
+    this.pausedAt = null;
     this.stopTicking();
     this.now = Date.now();
     this.reportPhaseEnd(false);
     this.phase = 'idle';
     this.phaseStartedAt = null;
     this.phaseDurationMs = 0;
+  }
+
+  pause(): void {
+    if (this.phase === 'idle' || this.paused) return;
+    this.paused = true;
+    this.pausedAt = Date.now();
+    this.now = this.pausedAt;
+    this.stopTicking();
+  }
+
+  resume(): void {
+    if (!this.paused || this.pausedAt === null || this.phaseStartedAt === null)
+      return;
+    const pauseDurationMs = Date.now() - this.pausedAt;
+    this.phaseStartedAt += pauseDurationMs;
+    this.paused = false;
+    this.pausedAt = null;
+    this.now = Date.now();
+    this.startTicking();
   }
 
   private beginPhase(phase: 'focus' | 'break'): void {
@@ -85,6 +108,7 @@ export class Timer {
   }
 
   private recompute(): void {
+    if (this.paused) return;
     this.now = Date.now();
     if (this.phase === 'idle' || this.phaseStartedAt === null) return;
     if (this.now - this.phaseStartedAt < this.phaseDurationMs) return;

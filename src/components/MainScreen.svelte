@@ -11,15 +11,19 @@
   const hasHistory = $derived(Object.keys(persisted.events).length > 0);
   const phaseLabel = $derived(
     timer.phase === 'focus'
-      ? 'Focus'
+      ? timer.paused
+        ? 'Focus · Paused'
+        : 'Focus'
       : timer.phase === 'break'
-        ? 'Break'
+        ? timer.paused
+          ? 'Break · Paused'
+          : 'Break'
         : 'Ready',
   );
   const startLabel = $derived(
     hasHistory ? 'Start next session' : 'Start focus',
   );
-  const buttonLabel = $derived(timer.phase === 'idle' ? startLabel : 'Stop');
+  const pauseLabel = $derived(timer.paused ? 'Resume' : 'Pause');
   const clockText = $derived(
     timer.phase === 'focus'
       ? formatClock(timer.elapsedMs)
@@ -29,15 +33,19 @@
   );
 
   function handleClick(): void {
-    if (timer.phase !== 'idle') {
-      timer.stop();
-      return;
-    }
     if (shouldPromptForPermission()) {
       permissionPromptVisible = true;
       return;
     }
     timer.start();
+  }
+
+  function handlePauseClick(): void {
+    if (timer.paused) {
+      timer.resume();
+    } else {
+      timer.pause();
+    }
   }
 
   function handlePromptDone(): void {
@@ -65,7 +73,18 @@
           <p class="clock">{clockText}</p>
         {/if}
 
-        <button class="action" onclick={handleClick}>{buttonLabel}</button>
+        {#if timer.phase === 'idle'}
+          <button class="action" onclick={handleClick}>{startLabel}</button>
+        {:else}
+          <div class="controls">
+            <button class="action" onclick={handlePauseClick}
+              >{pauseLabel}</button
+            >
+            <button class="secondary danger" onclick={() => timer.stop()}
+              >Stop</button
+            >
+          </div>
+        {/if}
       {/if}
     </div>
   {/key}
@@ -117,5 +136,32 @@
 
   .action:hover {
     background-color: var(--color-border);
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .secondary {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  .secondary:hover {
+    color: var(--color-text);
+  }
+
+  .secondary.danger {
+    color: var(--color-danger-muted);
+  }
+
+  .secondary.danger:hover {
+    color: var(--color-danger);
   }
 </style>

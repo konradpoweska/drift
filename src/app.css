@@ -14,6 +14,8 @@
   --color-text-muted: rgba(240, 237, 232, 0.45);
   --color-surface: rgba(255, 255, 255, 0.06);
   --color-border: rgba(255, 255, 255, 0.1);
+  --color-danger: #ff6b6b;
+  --color-danger-muted: rgba(255, 107, 107, 0.85);
 
   font-family:
     system-ui,
@@ -33,6 +35,8 @@
     --color-text-muted: rgba(28, 27, 25, 0.5);
     --color-surface: rgba(0, 0, 0, 0.05);
     --color-border: rgba(0, 0, 0, 0.12);
+    --color-danger: #c0392b;
+    --color-danger-muted: rgba(192, 57, 43, 0.85);
   }
 }
 
